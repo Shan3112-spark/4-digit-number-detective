@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🔐 4-Digit Number Detective</title>
+  <!-- Google Fonts & Canvas Confetti Library -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0b0f19 0%, #111827 50%, #070a12 100%);
+      --card-bg: rgba(17, 24, 39, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent-cyan: #06b6d4;
+      --accent-blue: #3b82f6;
+      --accent-green: #10b981;
+      --accent-purple: #8b5cf6;
+      --accent-pink: #ec4899;
+      --accent-amber: #f59e0b;
+      --accent-red: #ef4444;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --font-heading: 'Outfit', sans-serif;
+      --font-code: 'Fira Code', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      font-family: var(--font-heading);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1.5rem 1rem;
+      overflow-x: hidden;
+    }
+
+    /* Container setup */
+    .app-container {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    /* Glassmorphism Cards */
+    .glass-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: 1.25rem;
+      padding: 1.5rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    /* Header Styling */
+    header {
+      text-align: center;
+      position: relative;
+    }
+
+    .app-title {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(90deg, #38bdf8, #818cf8, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .app-subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+      font-weight: 400;
+    }
+
+    /* Top Banner / Difficulty Bar */
+    .control-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .difficulty-group {
+      display: flex;
+      gap: 0.5rem;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 0.35rem;
+      border-radius: 0.75rem;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .btn-diff {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.5rem 0.85rem;
+      font-family: var(--font-heading);
+      font-weight: 600;
+      font-size: 0.85rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-diff:hover {
+      color: var(--text-main);
+    }
+
+    .btn-diff.active[data-diff="easy"] {
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+      border: 1px solid var(--accent-green);
+    }
+
+    .btn-diff.active[data-diff="medium"] {
+      background: rgba(245, 158, 11, 0.2);
+      color: #fbbf24;
+      border: 1px solid var(--accent-amber);
+    }
+
+    .btn-diff.active[data-diff="hard"] {
+      background: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+      border: 1px solid var(--accent-red);
+    }
+
+    .action-group {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .btn {
+      font-family: var(--font-heading);
+      font-weight: 600;
+      padding: 0.6rem 1.2rem;
+      border-radius: 0.75rem;
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.2s ease;
+      font-size: 0.9rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+      border-color: var(--card-border);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-1px);
+    }
+
+    .btn-warning {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border-color: rgba(245, 158, 11, 0.3);
+    }
+
+    .btn-warning:hover:not(:disabled) {
+      background: rgba(245, 158, 11, 0.25);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    /* Main Gameplay Dashboard */
+    .game-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (min-width: 768px) {
+      .game-grid {
+        grid-template-columns: 1.2fr 0.8fr;
+      }
+    }
+
+    /* Input Section */
+    .input-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.25rem;
+      text-align: center;
+    }
+
+    .game-status-badge {
+      display: flex;
+      gap: 1.5rem;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 0.5rem 1.25rem;
+      border-radius: 2rem;
+      border: 1px solid var(--card-border);
+      font-size: 0.95rem;
+    }
+
+    .status-item span {
+      font-weight: 700;
+      color: var(--accent-cyan);
+    }
+
+    /* Digital Lock Display Input */
+    .guess-input-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 320px;
+    }
+
+    .guess-input {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      border: 2px solid rgba(6, 182, 212, 0.4);
+      border-radius: 1rem;
+      padding: 1rem;
+      font-family: var(--font-code);
+      font-size: 2.5rem;
+      font-weight: 700;
+      letter-spacing: 0.4em;
+      text-align: center;
+      color: #38bdf8;
+      box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.8), 0 0 15px rgba(6, 182, 212, 0.2);
+      outline: none;
+      transition: all 0.25 ease;
+      caret-color: var(--accent-pink);
+    }
+
+    .guess-input:focus {
+      border-color: var(--accent-cyan);
+      box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.8), 0 0 25px rgba(6, 182, 212, 0.4);
+    }
+
+    .validation-msg {
+      min-height: 1.5rem;
+      font-size: 0.875rem;
+      color: var(--accent-red);
+      font-weight: 600;
+      transition: opacity 0.2s ease;
+    }
+
+    .btn-submit {
+      width: 100%;
+      max-width: 320px;
+      padding: 1rem;
+      font-size: 1.1rem;
+      justify-content: center;
+      letter-spacing: 0.05em;
+    }
+
+    /* Feedback Display Area */
+    .feedback-card {
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 1rem;
+      padding: 1.25rem;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      border: 1px dashed rgba(255, 255, 255, 0.1);
+    }
+
+    .feedback-title {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+    }
+
+    .feedback-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .metric-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--card-border);
+      border-radius: 0.75rem;
+      padding: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .metric-val {
+      font-family: var(--font-code);
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+
+    .metric-box.digits .metric-val { color: var(--accent-green); }
+    .metric-box.locations .metric-val { color: var(--accent-blue); }
+
+    .metric-lbl {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    .educational-msg {
+      background: rgba(139, 92, 246, 0.1);
+      border: 1px solid rgba(139, 92, 246, 0.25);
+      border-radius: 0.75rem;
+      padding: 0.75rem 1rem;
+      font-size: 0.9rem;
+      color: #c4b5fd;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* History Table */
+    .history-card {
+      display: flex;
+      flex-direction: column;
+      max-height: 400px;
+    }
+
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .table-wrapper {
+      overflow-y: auto;
+      flex-grow: 1;
+      border-radius: 0.75rem;
+      border: 1px solid var(--card-border);
+    }
+
+    /* Custom Scrollbar */
+    .table-wrapper::-webkit-scrollbar {
+      width: 6px;
+    }
+    .table-wrapper::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.2);
+    }
+    .table-wrapper::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 3px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    th {
+      background: rgba(0, 0, 0, 0.4);
+      padding: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      backdrop-filter: blur(5px);
+    }
+
+    td {
+      padding: 0.75rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      font-family: var(--font-code);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:nth-child(even) {
+      background: rgba(255, 255, 255, 0.015);
+    }
+
+    .badge-tag {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 0.4rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .tag-digits { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+    .tag-locations { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+
+    /* Hints Box */
+    .hint-box {
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px dashed rgba(245, 158, 11, 0.3);
+      border-radius: 0.75rem;
+      padding: 0.75rem 1rem;
+      font-size: 0.875rem;
+      color: #fef08a;
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    /* Overlay / Banner for Win & Game Over */
+    .end-game-banner {
+      display: none;
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(6, 182, 212, 0.2));
+      border: 1px solid var(--accent-green);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      text-align: center;
+      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .end-game-banner.loss {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(185, 28, 28, 0.2));
+      border-color: var(--accent-red);
+    }
+
+    .banner-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+    }
+
+    .end-game-banner.win .banner-title { color: #34d399; }
+    .end-game-banner.loss .banner-title { color: #f87171; }
+
+    .banner-desc {
+      font-size: 0.95rem;
+      color: var(--text-main);
+      margin-bottom: 1rem;
+    }
+
+    .secret-reveal {
+      font-family: var(--font-code);
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      color: #fff;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 0.25rem 0.75rem;
+      border-radius: 0.5rem;
+      display: inline-block;
+      margin: 0.25rem 0;
+    }
+
+    /* Accordion / Info Panels */
+    .accordion {
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      user-select: none;
+    }
+
+    .accordion-content {
+      display: none;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      border-top: 1px solid var(--card-border);
+      padding-top: 1rem;
+    }
+
+    .accordion-content.open {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .example-panel {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 0.75rem;
+      padding: 1rem;
+      margin-top: 0.75rem;
+      border-left: 3px solid var(--accent-cyan);
+    }
+
+    /* Statistics Footer */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 1rem;
+      margin-top: 0.5rem;
+    }
+
+    .stat-card {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--card-border);
+      border-radius: 0.75rem;
+      padding: 0.75rem;
+      text-align: center;
+    }
+
+    .stat-val {
+      font-family: var(--font-code);
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+    }
+
+    .stat-lbl {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    .reset-stats-container {
+      margin-top: 1rem;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    /* Keyframe Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-8px); }
+      40%, 80% { transform: translateX(8px); }
+    }
+
+    .shake-anim {
+      animation: shake 0.4s ease-in-out;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- HEADER -->
+    <header class="glass-card">
+      <h1 class="app-title">🔐 4-DIGIT NUMBER DETECTIVE</h1>
+      <p class="app-subtitle">Crack the secret code using logic, deduction, and positional clues!</p>
+    </header>
+
+    <!-- CONTROL & DIFFICULTY BAR -->
+    <div class="glass-card control-bar">
+      <div class="difficulty-group">
+        <button class="btn-diff active" data-diff="easy" onclick="setDifficulty('easy')">🟢 EASY (15)</button>
+        <button class="btn-diff" data-diff="medium" onclick="setDifficulty('medium')">🟡 MEDIUM (10)</button>
+        <button class="btn-diff" data-diff="hard" onclick="setDifficulty('hard')">🔴 HARD (7)</button>
+      </div>
+      <div class="action-group">
+        <button class="btn btn-warning" id="btn-hint" onclick="useHint()">💡 HINT (<span id="hints-left-count">5</span>)</button>
+        <button class="btn btn-secondary" onclick="resetGame()">🔄 RESET GAME</button>
+      </div>
+    </div>
+
+    <!-- MAIN GAME AREA -->
+    <div class="game-grid">
+      
+      <!-- LEFT COLUMN: Input & Feedback -->
+      <div class="glass-card input-section">
+        
+        <div class="game-status-badge">
+          <div class="status-item">Attempts: <span id="attempts-count">0</span>/<span id="max-attempts-count">15</span></div>
+          <div class="status-item">Level: <span id="difficulty-name" style="text-transform: capitalize;">Easy</span></div>
+        </div>
+
+        <!-- Dynamic Game Win/Loss Banner -->
+        <div class="end-game-banner" id="end-banner">
+          <div class="banner-title" id="banner-title">🎉 CONGRATULATIONS!</div>
+          <div class="banner-desc" id="banner-desc">You cracked the secret number!</div>
+          <button class="btn btn-primary" onclick="resetGame()" style="margin: 0 auto;">PLAY AGAIN</button>
+        </div>
+
+        <div class="hint-box" id="hint-display-box"></div>
+
+        <!-- GUESS FORM -->
+        <div id="interactive-input-zone" style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 0.75rem;">
+          <p style="font-size: 0.9rem; color: var(--text-muted);">Enter a 4-digit number with unique digits (1-9 for 1st digit):</p>
+          
+          <div class="guess-input-wrapper">
+            <input 
+              type="text" 
+              id="guess-input" 
+              class="guess-input" 
+              maxlength="4" 
+              placeholder="••••"
+              autocomplete="off"
+              inputmode="numeric"
+            />
+          </div>
+
+          <div class="validation-msg" id="validation-msg"></div>
+
+          <button class="btn btn-primary btn-submit" id="btn-check" onclick="handleGuessSubmit()">
+            CHECK ANSWER 🔍
+          </button>
+        </div>
+
+        <!-- FEEDBACK DISPLAY -->
+        <div class="feedback-card">
+          <div class="feedback-title">Latest Guess Feedback</div>
+          <div class="feedback-metrics">
+            <div class="metric-box digits">
+              <div class="metric-val" id="res-correct-digits">-</div>
+              <div class="metric-lbl">🟢 Correct Digits</div>
+            </div>
+            <div class="metric-box locations">
+              <div class="metric-val" id="res-correct-locations">-</div>
+              <div class="metric-lbl">🔵 Correct Locations</div>
+            </div>
+          </div>
+          <div class="educational-msg" id="edu-feedback-msg">
+            🔍 Enter your first guess above to start receiving clues!
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: Attempt History -->
+      <div class="glass-card history-card">
+        <div class="history-header">
+          <h3 style="font-size: 1.1rem; font-weight: 700;">📜 Guess History</h3>
+          <span style="font-size: 0.8rem; color: var(--text-muted);" id="history-counter">0 guesses</span>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Guess</th>
+                <th>Digits</th>
+                <th>Locations</th>
+              </tr>
+            </thead>
+            <tbody id="history-table-body">
+              <tr>
+                <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">
+                  No attempts yet. Make your first guess!
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- STATISTICS SECTION -->
+    <div class="glass-card">
+      <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.75rem;">📊 Detective Career Statistics</h3>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-val" id="stat-best-score">-</div>
+          <div class="stat-lbl">Best Score (Fewest Attempts)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="stat-games-won">0</div>
+          <div class="stat-lbl">Games Won</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="stat-total-games">0</div>
+          <div class="stat-lbl">Total Played</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="stat-success-rate">0%</div>
+          <div class="stat-lbl">Success Rate</div>
+        </div>
+      </div>
+      <div class="reset-stats-container">
+        <button class="btn btn-secondary" onclick="confirmResetStats()" style="font-size: 0.75rem; padding: 0.35rem 0.75rem;">
+          🗑 RESET STATISTICS
+        </button>
+      </div>
+    </div>
+
+    <!-- HOW TO PLAY / EXPLANATION SECTION -->
+    <div class="glass-card">
+      <div class="accordion" onclick="toggleAccordion('how-to-play')">
+        <span>📖 How to Play & Game Rules</span>
+        <span id="acc-icon-how-to-play">▼</span>
+      </div>
+      <div class="accordion-content" id="how-to-play">
+        <ol style="padding-left: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem;">
+          <li>The system secretly generates a random <strong>4-digit number</strong> with <strong>unique digits</strong> (e.g., 5832).</li>
+          <li>The first digit is <strong>never zero (0)</strong>.</li>
+          <li>Your goal is to deduce the exact secret number in as few attempts as possible.</li>
+          <li>After entering a guess, you receive two critical clues:
+            <ul>
+              <li><strong>🟢 Correct Digits:</strong> How many digits in your guess exist anywhere in the secret number.</li>
+              <li><strong>🔵 Correct Locations:</strong> How many digits are both existing and in the exact correct spot.</li>
+            </ul>
+          </li>
+          <li>Use deduction and process of elimination to refine your next guess!</li>
+        </ol>
+
+        <div class="example-panel">
+          <strong style="color: var(--text-main);">💡 Example Walkthrough:</strong>
+          <p style="margin-top: 0.35rem;">Suppose the Secret Number is <code style="color: var(--accent-cyan);">5832</code>:</p>
+          <ul style="padding-left: 1.25rem; margin-top: 0.35rem;">
+            <li>If you guess <strong>2857</strong> → Correct Digits = <strong>3</strong> (2, 8, 5 exist), Correct Locations = <strong>1</strong> (only 8 is in position 2).</li>
+            <li>If you guess <strong>5837</strong> → Correct Digits = <strong>3</strong> (5, 8, 3 exist), Correct Locations = <strong>3</strong> (5, 8, and 3 are in exact spots).</li>
+            <li>If you guess <strong>5832</strong> → Correct Digits = <strong>4</strong>, Correct Locations = <strong>4</strong> 🎉 <strong>Code Cracked!</strong></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- JAVASCRIPT GAME LOGIC -->
+  <script>
+    /* ================================================================
+      4-DIGIT NUMBER DETECTIVE - GAME STATE & CORE LOGIC
+      ================================================================
+    */
+
+    // Configuration Settings per Difficulty
+    const DIFFICULTY_SETTINGS = {
+      easy: { maxAttempts: 15, maxHints: 5, name: 'Easy' },
+      medium: { maxAttempts: 10, maxHints: 3, name: 'Medium' },
+      hard: { maxAttempts: 7, maxHints: 1, name: 'Hard' }
+    };
+
+    // Game Variables
+    let currentDifficulty = 'easy';
+    let secretNumber = '';
+    let attemptsCount = 0;
+    let hintsRemaining = 5;
+    let guessHistory = [];
+    let isGameOver = false;
+
+    // LocalStorage Key
+    const STATS_STORAGE_KEY = 'number_detective_stats_v1';
+
+    // Core Statistics State
+    let stats = {
+      bestScore: null,
+      gamesWon: 0,
+      totalGames: 0
+    };
+
+    // DOM Elements Cache
+    const guessInput = document.getElementById('guess-input');
+    const validationMsg = document.getElementById('validation-msg');
+    const attemptsCountEl = document.getElementById('attempts-count');
+    const maxAttemptsCountEl = document.getElementById('max-attempts-count');
+    const hintsLeftCountEl = document.getElementById('hints-left-count');
+    const btnHint = document.getElementById('btn-hint');
+    const btnCheck = document.getElementById('btn-check');
+    const historyTableBody = document.getElementById('history-table-body');
+    const historyCounter = document.getElementById('history-counter');
+    const resCorrectDigits = document.getElementById('res-correct-digits');
+    const resCorrectLocations = document.getElementById('res-correct-locations');
+    const eduFeedbackMsg = document.getElementById('edu-feedback-msg');
+    const hintDisplayBox = document.getElementById('hint-display-box');
+    const endBanner = document.getElementById('end-banner');
+    const bannerTitle = document.getElementById('banner-title');
+    const bannerDesc = document.getElementById('banner-desc');
+    const interactiveInputZone = document.getElementById('interactive-input-zone');
+    const difficultyNameEl = document.getElementById('difficulty-name');
+
+    // Stats Elements
+    const statBestScore = document.getElementById('stat-best-score');
+    const statGamesWon = document.getElementById('stat-games-won');
+    const statTotalGames = document.getElementById('stat-total-games');
+    const statSuccessRate = document.getElementById('stat-success-rate');
+
+    // Initialize Game on Window Load
+    window.addEventListener('load', () => {
+      loadStats();
+      startNewGame();
+      
+      // Auto-filter input to digits only & check on Enter key
+      guessInput.addEventListener('input', (e) => {
+        guessInput.value = guessInput.value.replace(/[^0-9]/g, '');
+        clearValidation();
+      });
+
+      guessInput.addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') {
+          handleGuessSubmit();
+        }
+      });
+    });
+
+    /**
+     * Generates a secret 4-digit number with unique digits.
+     * First digit is guaranteed to be between 1-9.
+     */
+    function generateSecretNumber() {
+      const digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+      
+      // Select first digit (1-9)
+      const firstDigitIndex = Math.floor(Math.random() * 9) + 1;
+      const firstDigit = digits[firstDigitIndex];
+      digits.splice(firstDigitIndex, 1);
+
+      // Shuffle remaining required 3 digits
+      let result = firstDigit;
+      for (let i = 0; i < 3; i++) {
+        const randomIndex = Math.floor(Math.random() * digits.length);
+        result += digits[randomIndex];
+        digits.splice(randomIndex, 1);
+      }
+
+      return result;
+    }
+
+    /**
+     * Starts or Resets a game session
+     */
+    function startNewGame() {
+      secretNumber = generateSecretNumber();
+      attemptsCount = 0;
+      isGameOver = false;
+      guessHistory = [];
+
+      const config = DIFFICULTY_SETTINGS[currentDifficulty];
+      hintsRemaining = config.maxHints;
+
+      // Update UI Counters
+      attemptsCountEl.textContent = '0';
+      maxAttemptsCountEl.textContent = config.maxAttempts;
+      hintsLeftCountEl.textContent = hintsRemaining;
+      difficultyNameEl.textContent = config.name;
+
+      // Reset Inputs and Feedback Area
+      guessInput.value = '';
+      guessInput.disabled = false;
+      btnCheck.disabled = false;
+      btnHint.disabled = false;
+      clearValidation();
+
+      resCorrectDigits.textContent = '-';
+      resCorrectLocations.textContent = '-';
+      eduFeedbackMsg.innerHTML = '🔍 Enter your first guess above to start receiving clues!';
+      
+      hintDisplayBox.style.display = 'none';
+      hintDisplayBox.textContent = '';
+
+      endBanner.style.display = 'none';
+      endBanner.className = 'end-game-banner';
+      interactiveInputZone.style.display = 'flex';
+
+      renderHistory();
+    }
+
+    /**
+     * Set active difficulty level
+     */
+    function setDifficulty(level) {
+      if (currentDifficulty === level) return;
+      currentDifficulty = level;
+
+      // Update active button state
+      document.querySelectorAll('.btn-diff').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.diff === level);
+      });
+
+      startNewGame();
+    }
+
+    /**
+     * Input Validation
+     */
+    function validateGuess(guess) {
+      if (guess.length !== 4) {
+        return 'Please enter a complete 4-digit number.';
+      }
+      if (guess[0] === '0') {
+        return 'The first digit cannot be zero (0).';
+      }
+      
+      // Check for unique digits
+      const uniqueDigits = new Set(guess);
+      if (uniqueDigits.size !== 4) {
+        return 'All 4 digits must be unique (no duplicate digits allowed).';
+      }
+
+      return null;
+    }
+
+    function showValidation(msg) {
+      validationMsg.textContent = msg;
+      guessInput.classList.add('shake-anim');
+      setTimeout(() => guessInput.classList.remove('shake-anim'), 400);
+    }
+
+    function clearValidation() {
+      validationMsg.textContent = '';
+    }
+
+    /**
+     * Comparison Algorithm: Correct Digits (Existence regardless of position)
+     */
+    function calculateCorrectDigits(secret, guess) {
+      let count = 0;
+      for (let i = 0; i < guess.length; i++) {
+        if (secret.includes(guess[i])) {
+          count++;
+        }
+      }
+      return count;
+    }
+
+    /**
+     * Comparison Algorithm: Correct Locations (Exact index match)
+     */
+    function calculateCorrectLocations(secret, guess) {
+      let count = 0;
+      for (let i = 0; i < 4; i++) {
+        if (secret[i] === guess[i]) {
+          count++;
+        }
+      }
+      return count;
+    }
+
+    /**
+     * Handles User Guess Submission
+     */
+    function handleGuessSubmit() {
+      if (isGameOver) return;
+
+      const guess = guessInput.value.trim();
+      const error = validateGuess(guess);
+
+      if (error) {
+        showValidation(error);
+        return;
+      }
+
+      clearValidation();
+      attemptsCount++;
+      attemptsCountEl.textContent = attemptsCount;
+
+      const correctDigits = calculateCorrectDigits(secretNumber, guess);
+      const correctLocations = calculateCorrectLocations(secretNumber, guess);
+
+      // Add attempt to history log
+      guessHistory.unshift({
+        attempt: attemptsCount,
+        guess: guess,
+        digits: correctDigits,
+        locations: correctLocations
+      });
+
+      // Update UI elements
+      renderFeedback(guess, correctDigits, correctLocations);
+      renderHistory();
+
+      // Clear input field for next attempt
+      guessInput.value = '';
+
+      // Check Win or Loss conditions
+      const maxAttempts = DIFFICULTY_SETTINGS[currentDifficulty].maxAttempts;
+
+      if (correctLocations === 4) {
+        handleWin();
+      } else if (attemptsCount >= maxAttempts) {
+        handleLoss();
+      }
+    }
+
+    /**
+     * Displays Educational Feedback messages
+     */
+    function renderFeedback(guess, digits, locations) {
+      resCorrectDigits.textContent = digits;
+      resCorrectLocations.textContent = locations;
+
+      let msg = '';
+      if (locations === 0 && digits === 0) {
+        msg = `❌ None of the digits in <strong>${guess}</strong> exist in the secret number. Eliminate them all!`;
+      } else if (locations === 0) {
+        msg = `🔍 Digits present, but none in the correct position. Keep reorganizing!`;
+      } else if (locations === 1) {
+        msg = `🧠 Good job! 1 digit is in its exact correct location.`;
+      } else if (locations === 2) {
+        msg = `🔥 Great progress! 2 digits are in their exact locations.`;
+      } else if (locations === 3) {
+        msg = `🚀 Almost there! 3 digits are correctly placed!`;
+      } else if (locations === 4) {
+        msg = `🎉 Outstanding! You cracked the entire secret number!`;
+      }
+
+      eduFeedbackMsg.innerHTML = msg;
+    }
+
+    /**
+     * Render Attempt History Table
+     */
+    function renderHistory() {
+      historyCounter.textContent = `${guessHistory.length} guess${guessHistory.length === 1 ? '' : 'es'}`;
+
+      if (guessHistory.length === 0) {
+        historyTableBody.innerHTML = `
+          <tr>
+            <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 2rem 0;">
+              No attempts yet. Make your first guess!
+            </td>
+          </tr>`;
+        return;
+      }
+
+      historyTableBody.innerHTML = guessHistory.map(item => `
+        <tr>
+          <td>#${item.attempt}</td>
+          <td style="font-weight: 700; color: var(--accent-cyan);">${item.guess}</td>
+          <td><span class="badge-tag tag-digits">${item.digits}</span></td>
+          <td><span class="badge-tag tag-locations">${item.locations}</span></td>
+        </tr>
+      `).join('');
+    }
+
+    /**
+     * Hint System
+     */
+    function useHint() {
+      if (isGameOver || hintsRemaining <= 0) return;
+
+      hintsRemaining--;
+      hintsLeftCountEl.textContent = hintsRemaining;
+
+      if (hintsRemaining === 0) {
+        btnHint.disabled = true;
+      }
+
+      // Generate dynamic non-spoiler hints based on secret number
+      const hintTypes = [
+        () => {
+          const highDigits = [...secretNumber].filter(d => parseInt(d) >= 7);
+          return highDigits.length > 0 
+            ? `💡 The secret code contains ${highDigits.length} digit(s) greater than or equal to 7.` 
+            : `💡 All digits in the secret code are less than 7.`;
+        },
+        () => {
+          const evenDigits = [...secretNumber].filter(d => parseInt(d) % 2 === 0);
+          return `💡 The secret code contains exactly ${evenDigits.length} even digit(s).`;
+        },
+        () => {
+          const sum = [...secretNumber].reduce((acc, curr) => acc + parseInt(curr), 0);
+          return `💡 The sum of all four secret digits equals ${sum}.`;
+        },
+        () => {
+          const randomIdx = Math.floor(Math.random() * 4);
+          const posNames = ['1st', '2nd', '3rd', '4th'];
+          return `💡 Clue: The ${posNames[randomIdx]} digit of the secret number is <strong>${secretNumber[randomIdx]}</strong>.`;
+        }
+      ];
+
+      const selectedHint = hintTypes[Math.floor(Math.random() * hintTypes.length)]();
+      hintDisplayBox.style.display = 'block';
+      hintDisplayBox.innerHTML = selectedHint;
+    }
+
+    /**
+     * Game Win Handler
+     */
+    function handleWin() {
+      isGameOver = true;
+      guessInput.disabled = true;
+      btnCheck.disabled = true;
+      btnHint.disabled = true;
+
+      // Update Overall Statistics
+      stats.totalGames++;
+      stats.gamesWon++;
+      if (stats.bestScore === null || attemptsCount < stats.bestScore) {
+        stats.bestScore = attemptsCount;
+      }
+      saveStats();
+
+      // Show Victory Banner
+      bannerTitle.textContent = '🎉 CONGRATULATIONS!';
+      bannerDesc.innerHTML = `🔓 You cracked the secret code <span class="secret-reveal">${secretNumber}</span> in <strong>${attemptsCount}</strong> attempt${attemptsCount === 1 ? '' : 's'}!`;
+      endBanner.className = 'end-game-banner win';
+      endBanner.style.display = 'block';
+      interactiveInputZone.style.display = 'none';
+
+      // Launch Confetti Animation
+      triggerConfetti();
+    }
+
+    /**
+     * Game Loss Handler
+     */
+    function handleLoss() {
+      isGameOver = true;
+      guessInput.disabled = true;
+      btnCheck.disabled = true;
+      btnHint.disabled = true;
+
+      stats.totalGames++;
+      saveStats();
+
+      // Show Loss Banner
+      bannerTitle.textContent = 'GAME OVER 🔒';
+      bannerDesc.innerHTML = `You ran out of attempts! The secret code was <span class="secret-reveal">${secretNumber}</span>.`;
+      endBanner.className = 'end-game-banner loss';
+      endBanner.style.display = 'block';
+      interactiveInputZone.style.display = 'none';
+    }
+
+    /**
+     * Celebration Confetti Effect
+     */
+    function triggerConfetti() {
+      if (typeof confetti === 'function') {
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 }
+        });
+      }
+    }
+
+    /**
+     * Statistics Management with LocalStorage
+     */
+    function loadStats() {
+      try {
+        const stored = localStorage.getItem(STATS_STORAGE_KEY);
+        if (stored) {
+          stats = JSON.parse(stored);
+        }
+      } catch (e) {
+        console.warn('LocalStorage unavailable for stats:', e);
+      }
+      updateStatsUI();
+    }
+
+    function saveStats() {
+      try {
+        localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(stats));
+      } catch (e) {
+        console.warn('Failed to save stats:', e);
+      }
+      updateStatsUI();
+    }
+
+    function updateStatsUI() {
+      statBestScore.textContent = stats.bestScore !== null ? `${stats.bestScore} tries` : '-';
+      statGamesWon.textContent = stats.gamesWon;
+      statTotalGames.textContent = stats.totalGames;
+      
+      const rate = stats.totalGames > 0 
+        ? Math.round((stats.gamesWon / stats.totalGames) * 100) 
+        : 0;
+      statSuccessRate.textContent = `${rate}%`;
+    }
+
+    function confirmResetStats() {
+      if (confirm('Are you sure you want to reset all your career game statistics?')) {
+        stats = { bestScore: null, gamesWon: 0, totalGames: 0 };
+        saveStats();
+      }
+    }
+
+    /**
+     * Accordion Expand/Collapse
+     */
+    function toggleAccordion(id) {
+      const content = document.getElementById(id);
+      const icon = document.getElementById(`acc-icon-${id}`);
+      if (content.classList.contains('open')) {
+        content.classList.remove('open');
+        icon.textContent = '▼';
+      } else {
+        content.classList.add('open');
+        icon.textContent = '▲';
+      }
+    }
+  </script>
+
+</body>
+</html>
