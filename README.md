@@ -1,10 +1,10 @@
-🔍4-Digit Number Detective
+# 🔍4-Digit Number Detective
 
 A logic-based code-breaking game built with plain HTML, CSS and JavaScript. The computer picks a secret 4-digit number, and you crack it using deduction and positional clues.
 
 ---
 
-✨ Features
+## ✨ Features
 
 - Three difficulty levels with different attempt and hint limits
 - Instant feedback after every guess (correct digits and correct locations)
@@ -17,7 +17,7 @@ A logic-based code-breaking game built with plain HTML, CSS and JavaScript. The 
 
 ---
 
-🎮 How to Play
+## 🎮 How to Play
 
 1. The game secretly generates a **4-digit number with unique digits**. The first digit is never 0.
 2. Enter your guess and press **Check Answer**.
@@ -48,7 +48,7 @@ Secret number: `5832`
 
 ---
 
-🛠️ Built With
+## 🛠️ Built With
 
 - HTML5
 - CSS3 (glassmorphism, animations)
